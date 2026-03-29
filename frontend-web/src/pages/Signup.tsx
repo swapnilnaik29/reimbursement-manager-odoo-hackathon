@@ -2,16 +2,12 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
-import type { User } from '../types';
+import { mockStore } from '../store/mockStore';
+import { Building2, Mail, Lock, User as UserIcon, Globe, ArrowRight } from 'lucide-react';
 
 interface Country {
   name: { common: string };
   currencies: Record<string, { name: string; symbol: string }>;
-}
-
-interface SignupResponse {
-  token: string;
-  user: User;
 }
 
 export default function Signup() {
@@ -29,7 +25,6 @@ export default function Signup() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Fetch countries + currencies from the provided API
   useEffect(() => {
     axios
       .get<Country[]>('https://restcountries.com/v3.1/all?fields=name,currencies')
@@ -65,144 +60,213 @@ export default function Signup() {
     }
 
     setLoading(true);
-    try {
-      const payload = {
-        name: form.name,
-        email: form.email,
-        password: form.password,
-        country: form.country,
-        currency: getSelectedCurrency(),
-      };
-      const res = await axios.post<SignupResponse>('/api/auth/signup', payload);
-      login(res.data.user, res.data.token);
-      navigate('/admin'); // First signup always creates Admin
-    } catch (err: unknown) {
-      if (axios.isAxiosError(err)) {
-        setError(err.response?.data?.message || 'Signup failed. Try again.');
-      } else {
-        setError('Something went wrong');
+    
+    // Simulate network delay
+    setTimeout(() => {
+      try {
+        const currency = getSelectedCurrency();
+        
+        // 1. Create Company
+        const companyId = 'comp_' + Date.now();
+        mockStore.createCompany({
+          id: companyId,
+          name: form.name + "'s Company",
+          currency: currency || 'USD',
+          country: form.country
+        });
+
+        // 2. Create Admin User
+        const userId = 'usr_' + Date.now();
+        const newUser = {
+          id: userId,
+          name: form.name,
+          email: form.email,
+          role: 'admin' as const,
+          companyId: companyId
+        };
+        mockStore.createUser(newUser);
+
+        // 3. Login
+        login(newUser, 'mock_token_' + userId);
+        navigate('/admin');
+        
+      } catch (err: unknown) {
+        setError('Signup failed. Try again.');
+      } finally {
+        setLoading(false);
       }
-    } finally {
-      setLoading(false);
-    }
+    }, 800);
   };
 
   const currency = getSelectedCurrency();
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-10">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 font-sans relative overflow-hidden">
+      {/* Decorative blobs */}
+      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-200 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob"></div>
+      <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob animation-delay-2000"></div>
+      <div className="absolute bottom-[-20%] left-[20%] w-[40%] h-[40%] bg-pink-200 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob animation-delay-4000"></div>
 
-        {/* Brand */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-12 h-12 bg-indigo-600 rounded-xl mb-4">
-            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 11h.01M12 11h.01M15 11h.01M4 19h16a2 2 0 002-2V7a2 2 0 00-2-2H4a2 2 0 00-2 2v10a2 2 0 002 2z" />
-            </svg>
+      <div className="w-full max-w-[1000px] bg-white rounded-3xl shadow-2xl flex overflow-hidden relative z-10 border border-slate-100">
+        
+        {/* Left Side: Brand & Visual */}
+        <div className="hidden lg:flex w-5/12 bg-gradient-to-br from-indigo-600 via-indigo-700 to-purple-800 p-12 flex-col justify-between text-white relative overflow-hidden">
+          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/always-grey.png')] opacity-10 mix-blend-overlay"></div>
+          
+          <div className="relative z-10">
+            <div className="inline-flex items-center justify-center w-14 h-14 bg-white/20 backdrop-blur-md rounded-2xl mb-6 shadow-inner border border-white/30">
+              <Building2 className="w-7 h-7 text-white" />
+            </div>
+            <h1 className="text-4xl font-black mb-4 tracking-tight">ReimburseFlow</h1>
+            <p className="text-indigo-100 text-lg font-medium leading-relaxed max-w-sm">
+              The smartest way to manage team expenses and approval workflows globally.
+            </p>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">ReimburseFlow</h1>
-          <p className="text-gray-500 text-sm mt-1">Create your company account</p>
+          
+          <div className="relative z-10">
+            <div className="bg-white/10 backdrop-blur-sm border border-white/20 p-6 rounded-2xl">
+              <p className="text-sm font-medium italic text-indigo-50 leading-relaxed mb-4">
+                "We set up our entire approval matrix in minutes. It handles multiple currencies flawlessly."
+              </p>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-indigo-400 rounded-full border-2 border-indigo-200"></div>
+                <div>
+                  <p className="text-sm font-bold">Sarah Jenkins</p>
+                  <p className="text-xs text-indigo-200">VP of Finance, TechCorp</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
-          <form onSubmit={handleSubmit} className="space-y-5">
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Full name</label>
-              <input
-                type="text"
-                name="name"
-                value={form.name}
-                onChange={handleChange}
-                required
-                placeholder="John Smith"
-                className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
-              />
+        {/* Right Side: Form */}
+        <div className="w-full lg:w-7/12 p-10 lg:p-14 bg-white relative">
+          <div className="max-w-md mx-auto">
+            <div className="mb-10 text-center lg:text-left">
+              <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">Create workspace</h2>
+              <p className="text-slate-500 mt-2 font-medium">Set up your company's admin account</p>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Email address</label>
-              <input
-                type="email"
-                name="email"
-                value={form.email}
-                onChange={handleChange}
-                required
-                placeholder="you@company.com"
-                className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Country</label>
-              <select
-                name="country"
-                value={form.country}
-                onChange={handleChange}
-                required
-                className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition bg-white"
-              >
-                <option value="">Select your country</option>
-                {countries.map(c => (
-                  <option key={c.name.common} value={c.name.common}>
-                    {c.name.common}
-                  </option>
-                ))}
-              </select>
-              {currency && (
-                <p className="text-xs text-indigo-600 mt-1.5 font-medium">
-                  Company currency will be set to: {currency}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
-              <input
-                type="password"
-                name="password"
-                value={form.password}
-                onChange={handleChange}
-                required
-                placeholder="••••••••"
-                className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Confirm password</label>
-              <input
-                type="password"
-                name="confirmPassword"
-                value={form.confirmPassword}
-                onChange={handleChange}
-                required
-                placeholder="••••••••"
-                className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
-              />
-            </div>
-
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg">
-                {error}
+            <form onSubmit={handleSubmit} className="space-y-5">
+              
+              <div className="space-y-1.5">
+                <label className="block text-sm font-semibold text-slate-700">Full name</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                    <UserIcon className="h-5 w-5 text-slate-400" />
+                  </div>
+                  <input
+                    type="text" name="name" value={form.name} onChange={handleChange} required
+                    placeholder="John Doe"
+                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 focus:bg-white transition-all duration-200 shadow-sm"
+                  />
+                </div>
               </div>
-            )}
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-medium py-2.5 rounded-lg text-sm transition"
-            >
-              {loading ? 'Creating account...' : 'Create account'}
-            </button>
-          </form>
+              <div className="space-y-1.5">
+                <label className="block text-sm font-semibold text-slate-700">Email address</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                    <Mail className="h-5 w-5 text-slate-400" />
+                  </div>
+                  <input
+                    type="email" name="email" value={form.email} onChange={handleChange} required
+                    placeholder="admin@company.com"
+                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 focus:bg-white transition-all duration-200 shadow-sm"
+                  />
+                </div>
+              </div>
 
-          <p className="text-center text-sm text-gray-500 mt-6">
-            Already have an account?{' '}
-            <Link to="/login" className="text-indigo-600 hover:underline font-medium">
-              Sign in
-            </Link>
-          </p>
+              <div className="space-y-1.5">
+                <label className="block text-sm font-semibold text-slate-700">Company Location</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                    <Globe className="h-5 w-5 text-slate-400" />
+                  </div>
+                  <select
+                    name="country" value={form.country} onChange={handleChange} required
+                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 focus:bg-white transition-all duration-200 shadow-sm appearance-none"
+                  >
+                    <option value="" disabled>Select base country</option>
+                    {countries.map(c => (
+                      <option key={c.name.common} value={c.name.common}>
+                        {c.name.common}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                {currency && (
+                  <p className="text-xs text-indigo-600 font-medium pl-1 animate-fade-in">
+                    Base currency set to: <span className="font-bold">{currency}</span>
+                  </p>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="block text-sm font-semibold text-slate-700">Password</label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Lock className="h-4 w-4 text-slate-400" />
+                    </div>
+                    <input
+                      type="password" name="password" value={form.password} onChange={handleChange} required
+                      placeholder="••••••••"
+                      className="w-full pl-9 pr-3 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 focus:bg-white transition-all duration-200 shadow-sm"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="block text-sm font-semibold text-slate-700">Confirm</label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Lock className="h-4 w-4 text-slate-400" />
+                    </div>
+                    <input
+                      type="password" name="confirmPassword" value={form.confirmPassword} onChange={handleChange} required
+                      placeholder="••••••••"
+                      className="w-full pl-9 pr-3 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 focus:bg-white transition-all duration-200 shadow-sm"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {error && (
+                <div className="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-xl border border-red-100 flex items-center animate-shake">
+                  {error}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3.5 rounded-xl text-sm transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 disabled:bg-slate-300 disabled:shadow-none disabled:translate-y-0 flex items-center justify-center gap-2 group mt-2"
+              >
+                {loading ? (
+                  <span className="flex items-center gap-2">
+                    <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Creating workspace...
+                  </span>
+                ) : (
+                  <>
+                    Create Workspace
+                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  </>
+                )}
+              </button>
+            </form>
+
+            <p className="text-center text-sm text-slate-500 font-medium mt-8">
+              Already have an account?{' '}
+              <Link to="/login" className="text-indigo-600 hover:text-indigo-800 hover:underline font-bold transition-colors">
+                Sign in
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
     </div>

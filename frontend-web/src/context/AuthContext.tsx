@@ -1,6 +1,7 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import type { User } from '../types';
+import { mockStore } from '../store/mockStore';
 
 interface AuthContextType {
   user: User | null;
@@ -21,6 +22,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [token, setToken] = useState<string | null>(() => {
     return localStorage.getItem('token');
   });
+
+  // Keep user sync'd if it gets updated elsewhere
+  useEffect(() => {
+    if (user?.id) {
+       const u = mockStore.getUserById(user.id);
+       if (u && JSON.stringify(u) !== JSON.stringify(user)) {
+           setUser(u);
+           localStorage.setItem('user', JSON.stringify(u));
+       }
+    }
+  }, [user]);
 
   const login = (user: User, token: string) => {
     setUser(user);
