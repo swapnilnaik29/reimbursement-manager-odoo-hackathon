@@ -53,13 +53,16 @@ async function onboardNewAdmin({ email, password, fullName, companyName, country
     });
     logger.db('AuthService', `Company created: ${company._id}`);
 
-    // Create default Approval Rule for the new company
+    // Create a sensible default 2-step approval workflow:
+    // Step 1: Direct Manager (the submitter's assigned manager)
+    // Step 2: Company-wide Manager fallback (Sequential — any Manager in the company)
     await ApprovalRule.create({
       company_id: company._id,
-      name: 'Default Direct Manager Approval',
+      name: 'Manager Approval',
       step_order: 1,
-      rule_type: 'Direct_Manager',
+      rule_type: 'Sequential',
       min_amount: 0,
+      config: { approver_role: 'Manager' },
     });
     logger.db('AuthService', `Default approval rule created for company ${company._id}`);
   } catch (err) {

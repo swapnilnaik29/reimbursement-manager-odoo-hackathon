@@ -69,7 +69,7 @@ async function createRule(req, res, next) {
       min_amount:  z.number().optional().nullable(),
       max_amount:  z.number().optional().nullable(),
       category:    z.string().optional().nullable(),
-      config:      z.record(z.unknown()),
+      config:      z.record(z.unknown()).optional().default({}),
     });
 
     const body = ruleSchema.parse(req.body);

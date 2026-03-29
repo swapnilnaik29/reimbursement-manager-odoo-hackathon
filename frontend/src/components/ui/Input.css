@@ -1,0 +1,50 @@
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+  width: 100%;
+}
+
+.input-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-main);
+}
+
+.input-control {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background-color: var(--bg-input);
+  color: var(--text-main);
+  transition: all var(--transition);
+  font-size: 0.95rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.input-control::placeholder {
+  color: var(--text-placeholder);
+}
+
+.input-control:focus {
+  outline: none;
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15); /* Tailwind Blue 500 equivalent */
+}
+
+.input-error {
+  border-color: var(--danger);
+  background-color: #FEF2F2;
+}
+
+.input-error:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15); /* Danger equivalent */
+}
+
+.input-error-text {
+  font-size: 0.8rem;
+  color: var(--danger);
+  font-weight: 500;
+}

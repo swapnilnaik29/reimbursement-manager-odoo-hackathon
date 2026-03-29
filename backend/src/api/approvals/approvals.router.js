@@ -15,8 +15,8 @@ const router = Router();
 router.use(requireAuth);
 
 // ── Approver endpoints (Manager, Admin) ───────────────────────
-router.get('/my-queue',              requireRole('Manager', 'Admin'), getMyQueue);
-router.post('/:requestId/decide',    requireRole('Manager', 'Admin'), decide);
+router.get('/my-queue',              requireRole('Senior_Manager', 'Manager', 'Admin'), getMyQueue);
+router.post('/:requestId/decide',    requireRole('Senior_Manager', 'Manager', 'Admin'), decide);
 
 // ── Approval Rules CRUD (Admin only) ─────────────────────────
 router.get('/rules',                 requireRole('Admin'), getRules);
