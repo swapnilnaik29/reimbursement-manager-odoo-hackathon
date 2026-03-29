@@ -523,7 +523,7 @@ if __name__ == '__main__':
     print("=" * 60)
     print(f"Upload folder: {app.config['UPLOAD_FOLDER']}")
     print(f"OCR Engine: EasyOCR (English)")
-    print(f"Server running on: http://localhost:8000")
+    print(f"Server running on: http://localhost:3000")
     print("=" * 60)
     print("\nEndpoints:")
     print("  POST /extract - Extract receipt data")
@@ -532,4 +532,4 @@ if __name__ == '__main__':
     print("  GET  /health - Health check")
     print("=" * 60)
 
-    app.run(host='0.0.0.0', port=8000, debug=False)
+    app.run(host='0.0.0.0', port=3000, debug=False)
