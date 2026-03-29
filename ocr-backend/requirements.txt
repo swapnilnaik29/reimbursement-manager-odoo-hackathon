@@ -1,0 +1,26 @@
+# Core Web Framework
+Flask
+Werkzeug
+
+# OCR Engine
+easyocr
+
+# Image Processing
+opencv-python8
+Pillow
+
+# PDF Processing
+PyMuPDF
+
+# Numerical Operations
+numpy
+
+# HTTP Requests (for testing)
+requests
+
+# Production Server (optional - for deployment)
+gunicorn
+eventlet
+
+# Utilities
+python-dotenv
