@@ -177,6 +177,35 @@ async function submitExpense(expenseId, userId, updates = {}) {
   }
 }
 
+async function editExpense(expenseId, userId, updates = {}) {
+  logger.info('ExpenseService', `Editing expense ${expenseId}`, { userId });
+
+  const expense = await Expense.findById(expenseId);
+  if (!expense) throw createError(404, 'Expense not found.');
+  if (expense.submitted_by.toString() !== userId.toString()) throw createError(403, 'You can only edit your own expenses.');
+  if (expense.status === 'Approved' || expense.status === 'Rejected' || expense.status === 'Cancelled') {
+    throw createError(400, `Cannot edit an expense that is already ${expense.status}.`);
+  }
+
+  // Only allow non-critical fields if already in approval queue
+  const allowed = expense.status === 'Draft' 
+    ? ['title', 'description', 'category', 'original_amount', 'original_currency']
+    : ['title', 'description', 'category'];
+
+  for (const [k, v] of Object.entries(updates)) {
+    if (allowed.includes(k) && v !== undefined) {
+      expense[k] = v;
+    }
+  }
+
+  try {
+    await expense.save();
+    return expense;
+  } catch (err) {
+    throw createError(500, `Failed to edit expense: ${err.message}`);
+  }
+}
+
 async function getMyExpenses(userId) {
   try {
     return await Expense.find({ submitted_by: userId }).sort({ createdAt: -1 }).lean();
@@ -240,6 +269,7 @@ module.exports = {
   createDraftFromOcr,
   createManualExpense,
   submitExpense,
+  editExpense,
   getMyExpenses,
   getCompanyExpenses,
   getExpenseById,

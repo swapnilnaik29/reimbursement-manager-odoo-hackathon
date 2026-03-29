@@ -37,7 +37,7 @@ const expenseSchema = new mongoose.Schema({
   ocr_data: mongoose.Schema.Types.Mixed,
   status: {
     type: String,
-    enum: ['Draft', 'Submitted', 'Pending', 'Approved', 'Rejected', 'Cancelled'],
+    enum: ['Draft', 'Submitted', 'Pending', 'Pending_Approval', 'Approved', 'Rejected', 'Cancelled'],
     default: 'Draft',
   },
   current_approval_step: {

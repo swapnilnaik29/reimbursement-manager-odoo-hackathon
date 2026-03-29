@@ -62,7 +62,7 @@ async function invite(req, res, next) {
     });
 
     return res.status(201).json({
-      message: `Invitation created for ${body.email}. Default password is TempPassword123!`,
+      message: `Invitation sent to ${body.email}. A secure random password has been emailed to them.`,
       user,
     });
   } catch (err) {

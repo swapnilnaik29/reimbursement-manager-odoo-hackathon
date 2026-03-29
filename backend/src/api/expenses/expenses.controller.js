@@ -5,6 +5,7 @@ const {
   createDraftFromOcr,
   createManualExpense,
   submitExpense,
+  editExpense,
   getMyExpenses,
   getCompanyExpenses,
   getExpenseById,
@@ -20,7 +21,7 @@ async function ingestOcrDraft(req, res, next) {
   try {
     const ocrData = ocrIngestionSchema.parse(req.body);
     const expense = await createDraftFromOcr({
-      userId:    req.user.id,
+      userId:    req.user._id,
       companyId: req.user.company_id,
       ocrData,
     });
@@ -35,7 +36,7 @@ async function ingestOcrDraft(req, res, next) {
 async function createManual(req, res, next) {
   try {
     const expense = await createManualExpense({
-      userId:    req.user.id,
+      userId:    req.user._id,
       companyId: req.user.company_id,
       data:      req.body,
       file:      req.file,
@@ -52,7 +53,20 @@ async function submit(req, res, next) {
   try {
     const { expenseId } = req.params;
     const updates = submitExpenseSchema.parse(req.body);
-    const expense = await submitExpense(expenseId, req.user.id, updates);
+    const expense = await submitExpense(expenseId, req.user._id, updates);
+    return res.status(200).json({ data: expense });
+  } catch (err) { next(err); }
+}
+
+/**
+ * PATCH /api/v1/expenses/:expenseId
+ * Edit a draft expense.
+ */
+async function editExpenseHandler(req, res, next) {
+  try {
+    const { expenseId } = req.params;
+    const updates = req.body;
+    const expense = await editExpense(expenseId, req.user._id, updates);
     return res.status(200).json({ data: expense });
   } catch (err) { next(err); }
 }
@@ -63,7 +77,7 @@ async function submit(req, res, next) {
  */
 async function myExpenses(req, res, next) {
   try {
-    const data = await getMyExpenses(req.user.id);
+    const data = await getMyExpenses(req.user._id);
     return res.status(200).json({ data });
   } catch (err) { next(err); }
 }
@@ -91,4 +105,4 @@ async function getOne(req, res, next) {
   } catch (err) { next(err); }
 }
 
-module.exports = { ingestOcrDraft, createManual, submit, myExpenses, companyExpenses, getOne };
+module.exports = { ingestOcrDraft, createManual, submit, myExpenses, companyExpenses, getOne, editExpense: editExpenseHandler };

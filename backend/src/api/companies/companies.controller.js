@@ -37,7 +37,7 @@ async function updateMyCompany(req, res, next) {
 async function getMembers(req, res, next) {
   try {
     const data = await User.find({ company_id: req.user.company_id })
-      .select('id email full_name role manager_id createdAt')
+      .select('_id email full_name role manager_id createdAt')
       .populate('manager_id', 'full_name email')
       .sort({ role: 1 })
       .lean();
